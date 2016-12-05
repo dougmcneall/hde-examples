@@ -1,5 +1,6 @@
 # hde_examples.R
 # Example code for the hde package.
+# Just checking I can push etc.
 
 library(devtools)
 
