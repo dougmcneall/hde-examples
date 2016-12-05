@@ -29,32 +29,31 @@ map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
 # Test a direct prediction against the best PC prediction.
 # (figure out how to deal with the NAs)
 
-
-ptm <- proc.time()
-n.pcs = 2:10
-mae.recon = rep(NA, max(n.pcs))
-
-for(j in 2:max(n.pcs)){
-  bl.frac.ens.pc.cv = matrix(NA, nrow=nrow(bl.frac.ens), ncol = ncol(bl.frac.ens))
-  for(i in 1:nrow(X)){
-    X.trunc = X.norm[-i, ]
-    Y.trunc = bl.frac.ens[-i, ]
-    X.target = X.norm[i, ]
-    Y.target = bl.frac.ens[i, ]
-    Y.recon = kmpar.pc(Y=Y.trunc, X=X.trunc, newdata=X.target, num.pc=n.pcs[j])
-    bl.frac.ens.pc.cv[i, ] = Y.recon$tens
-  }
-  mae.recon[j] = mean(abs(bl.frac.ens.pc.cv - bl.frac.ens), na.rm = TRUE)
-}
+# ptm <- proc.time()
+# n.pcs = 2:10
+# mae.recon = rep(NA, max(n.pcs))
+# 
+# for(j in 2:max(n.pcs)){
+#   bl.frac.ens.pc.cv = matrix(NA, nrow=nrow(bl.frac.ens), ncol = ncol(bl.frac.ens))
+#   for(i in 1:nrow(X)){
+#     X.trunc = X.norm[-i, ]
+#     Y.trunc = bl.frac.ens[-i, ]
+#     X.target = X.norm[i, ]
+#     Y.target = bl.frac.ens[i, ]
+#     Y.recon = kmpar.pc(Y=Y.trunc, X=X.trunc, newdata=X.target, num.pc=n.pcs[j])
+#     bl.frac.ens.pc.cv[i, ] = Y.recon$tens
+#   }
+#   mae.recon[j] = mean(abs(bl.frac.ens.pc.cv - bl.frac.ens), na.rm = TRUE)
+# }
 
 # Takes about 35 minutes to test PCs 2:9 on desktop
-loop.time = proc.time() - ptm
+# loop.time = proc.time() - ptm
 
 # There is evidence that mean absolute error bottoms
 # Out at 6 or 7 PCs
-pdf(file='../graphics/pc_recon2_9.pdf')
-plot(mae.recon, type = 'b', xlab='Reconstruction PCs used', ylab='Mean absolute cv reconstruction error')
-dev.off()
+# pdf(file='../graphics/pc_recon2_9.pdf')
+# plot(mae.recon, type = 'b', xlab='Reconstruction PCs used', ylab='Mean absolute cv reconstruction error')
+# dev.off()
 
 ptm <- proc.time()
 # Let's have a look at 6 PCs (takes about 4 minutes on desktop)
