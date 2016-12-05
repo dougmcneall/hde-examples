@@ -56,7 +56,7 @@ map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
 # dev.off()
 
 ptm <- proc.time()
-# Let's have a look at 6 PCs (takes about 4 minutes on desktop)
+# Let's have a look at 6 PCs (takes about 4 minutes on desktop, 5.4 on the mac)
 bl.frac.ens.pc.cv = matrix(NA, nrow=nrow(bl.frac.ens), ncol = ncol(bl.frac.ens))
 for(i in 1:nrow(X)){
   X.trunc = X.norm[-i, ]
@@ -70,8 +70,8 @@ for(i in 1:nrow(X)){
 loop.time = proc.time() - ptm
 
 bl.frac.abserr = abs(bl.frac.ens.pc.cv - bl.frac.ens)
-bl.frac.sd = apply(bl.frac.ens,2, FUN = sd, na.rm = TRUE)
-bl.frac.mmae = apply(bl.frac.abserr, 2, FUN = mean, na.rm = TRUE)
+bl.frac.sd = apply(bl.frac.ens,2, FUN=sd, na.rm=TRUE)
+bl.frac.mmae = apply(bl.frac.abserr, 2, FUN=mean, na.rm=TRUE)
 bl.frac.mmae.norm = bl.frac.mmae / bl.frac.sd
 # Bit of a tricky way to replace NaN and inf with NAs
 bl.frac.mmae.norm[is.finite(bl.frac.mmae.norm)==FALSE] <- NA
@@ -79,14 +79,39 @@ bl.frac.mmae.norm[is.finite(bl.frac.mmae.norm)==FALSE] <- NA
 dev.new(width = 8, height =6)
 image.plot(longs, rev(lats),
            remap.famous(bl.frac.mmae,longs, lats),
-           col=yg)
-map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
+           col=yg, main='Mean absolute error 6 PCs', xlab='', ylab='')
+map("world2", ylim=c(-90,90), xlim=c(0,360), add=TRUE)
 
 dev.new()
-hist(bl.frac.mmae.norm)
+hist(bl.frac.mmae)
 
 dev.new(width = 8, height =6)
 image.plot(longs, rev(lats),
            remap.famous(bl.frac.mmae.norm,longs, lats),
-           col=yg, zlim = c(0,1))
+           col=yg, zlim = c(0,1), main='Normalised mean absolute error 6 PCs', xlab='', ylab='')
 map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
+
+# How would our emulator error compare if you were to just pick a random
+# ensemble member in place of the reconstruction?
+
+bl.random.recon = bl.frac.ens[sample(1:nrow(bl.frac.ens), replace=FALSE), ]
+bl.random.recon.abserr = abs(bl.random.recon - bl.frac.ens)
+bl.random.recon.mae = apply(bl.random.recon.abserr, 2, mean, na.rm=TRUE)
+
+dev.new(width=8, height=8)
+par(mfrow = c(2,1), mar=c(2,2,2,2))
+image.plot(longs, rev(lats),
+           remap.famous(bl.random.recon.mae,longs, lats),
+           col=yg, main='Mean absolute error random', xlab='', ylab='', zlim = c(0,0.4))
+map("world2", ylim=c(-90,90), xlim=c(0,360), add=TRUE)
+
+image.plot(longs, rev(lats),
+           remap.famous(bl.frac.mmae,longs, lats),
+           col=yg, main='Mean absolute error 6 PCs', xlab='', ylab='', zlim = c(0,0.4))
+map("world2", ylim=c(-90,90), xlim=c(0,360), add=TRUE)
+
+
+
+
+
+
