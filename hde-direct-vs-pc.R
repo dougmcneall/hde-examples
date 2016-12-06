@@ -21,6 +21,14 @@ X.norm = normalize(X)
 X.stan.norm = normalize(matrix(X.standard, nrow = 1), wrt=X)
 
 
+# LOOCV reconstruction by direct emulation
+
+# Looking at a 24 hour compute time for direct prediction on the mac
+# Not working with NAs very well at the moment
+ptm = proc.time()
+test = direct.pred(form = ~., X = X.norm, Y = bl.frac.ens[ , 512:520], Xnew=X.stan.norm)
+direct.time = proc.time() - ptm
+
 # LOOCV reconstruct using dimension reduction
 bl.frac.ens.pc.cv = matrix(NA, nrow=nrow(bl.frac.ens), ncol = ncol(bl.frac.ens))
 for(i in 1:nrow(X)){
