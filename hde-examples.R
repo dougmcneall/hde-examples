@@ -33,7 +33,7 @@ map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
 # ptm <- proc.time()
 # n.pcs = 2:10
 # mae.recon = rep(NA, max(n.pcs))
-# 
+#
 # for(j in 2:max(n.pcs)){
 #   bl.frac.ens.pc.cv = matrix(NA, nrow=nrow(bl.frac.ens), ncol = ncol(bl.frac.ens))
 #   for(i in 1:nrow(X)){
@@ -92,6 +92,10 @@ image.plot(longs, rev(lats),
            col=yg, zlim = c(0,1), main='Normalised mean absolute error 6 PCs', xlab='', ylab='')
 map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
 
+# Broadly, emulator error scales with standard deviation in the ensemble, and
+# works out at just under half of one standard deviation.
+mean(bl.frac.mmae.norm, na.rm = TRUE)
+
 # How would our emulator error compare if you were to just pick a random
 # ensemble member in place of the reconstruction?
 
@@ -111,7 +115,10 @@ image.plot(longs, rev(lats),
            col=yg, main='Mean absolute error 6 PCs', xlab='', ylab='', zlim = c(0,0.4))
 map("world2", ylim=c(-90,90), xlim=c(0,360), add=TRUE)
 
-
+# The mean of the error normalised by standard deviation is a little under
+# double that of using the emulator - closer to a single
+# standard deviation of the ensemble.
+mean((bl.random.recon.mae / bl.frac.sd), na.rm = TRUE)
 
 
 
