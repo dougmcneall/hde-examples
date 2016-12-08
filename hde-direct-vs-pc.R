@@ -32,57 +32,57 @@ for(i in 1:nrow(X)){
   bl.frac.ens.pc.cv[i, ] = Y.recon$tens
 }
 
-# LOOCV reconstruct on a per-gridbox basis
-# Helper functions that need to go into hde ...
-km.wrap2 = function (form, em, ...){
-  out = NA
-  fit = try(DiceKriging::km(form, design = em$X, response = em$y, 
-                            control = list(trace = FALSE), ...), silent = TRUE)
-  out = fit
-  out
-}
-
-km.pred.wrap = function(kmobj, Xnew, ...){
-  
-  pred = try(DiceKriging::predict.km(kmobj, newdata=Xnew, ...))
-  pred
-             
-}
-
-extract.predmean = function(predobj){
-  if (class(predobj) == "try-error"){
-    out=NA
-  } 
-  else {
-    out = predobj$mean
-  }
-  out
-}
-
-extract.predsd = function(predobj){
-  if (class(predobj) == "try-error"){
-    out = NA
-  } 
-  else {
-    out = predobj$sd
-  }
-  out
-}
-
-direct.pred2 = function (form, X, Y, Xnew, ...){
-  ens.list = emlist(X = X, Y = Y)
-  km.list = mclapply(ens.list, FUN = km.wrap2, form = form)
-  
-  pred.list = mclapply(km.list, FUN = km.pred.wrap, Xnew = as.matrix(Xnew, nrow = 1), type = "UK")
-  
-  out.mean = sapply(pred.list, FUN=extract.predmean)
-  out.sd = sapply(pred.list, FUN=extract.predsd)
-  return(list(mean = out.mean, sd = out.sd))
-}
+# # LOOCV reconstruct on a per-gridbox basis
+# # Helper functions that need to go into hde ...
+# km.wrap2 = function (form, em, ...){
+#   out = NA
+#   fit = try(DiceKriging::km(form, design = em$X, response = em$y, 
+#                             control = list(trace = FALSE), ...), silent = TRUE)
+#   out = fit
+#   out
+# }
+# 
+# km.pred.wrap = function(kmobj, Xnew, ...){
+#   
+#   pred = try(DiceKriging::predict.km(kmobj, newdata=Xnew, ...))
+#   pred
+#              
+# }
+# 
+# extract.predmean = function(predobj){
+#   if (class(predobj) == "try-error"){
+#     out=NA
+#   } 
+#   else {
+#     out = predobj$mean
+#   }
+#   out
+# }
+# 
+# extract.predsd = function(predobj){
+#   if (class(predobj) == "try-error"){
+#     out = NA
+#   } 
+#   else {
+#     out = predobj$sd
+#   }
+#   out
+# }
+# 
+# direct.pred2 = function (form, X, Y, Xnew, ...){
+#   ens.list = emlist(X = X, Y = Y)
+#   km.list = mclapply(ens.list, FUN = km.wrap2, form = form)
+#   
+#   pred.list = mclapply(km.list, FUN = km.pred.wrap, Xnew = as.matrix(Xnew, nrow = 1), type = "UK")
+#   
+#   out.mean = sapply(pred.list, FUN=extract.predmean)
+#   out.sd = sapply(pred.list, FUN=extract.predsd)
+#   return(list(mean = out.mean, sd = out.sd))
+# }
 
 # LOOCV reconstruction by direct emulation
 # Looking at a 24 hour compute time for direct prediction on the mac.
 ptm = proc.time()
-test = direct.pred2(form = ~., X = X.norm, 
-                    Y = bl.frac.ens[ , 510:610], Xnew=X.stan.norm)
+test = direct.pred(form = ~., X = X.norm, 
+                    Y = bl.frac.ens[ , 510:520], Xnew=X.stan.norm)
 direct.time = proc.time() - ptm
