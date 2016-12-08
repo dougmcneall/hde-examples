@@ -1,21 +1,26 @@
 # hde_examples.R
 # Example code for the hde package.
-# Just checking I can push etc.
+# Doug McNeall dougmcneall@gmail.com
 
+# -------------------------------------------------------------------
+# 0. Administration
+# -------------------------------------------------------------------
 library(devtools)
-
 install_github(repo = "dougmcneall/hde")
-
 library(hde)
-library(RColorBrewer)
-library(fields)
 
+# some useful emulation and visualisation tools
 source("https://raw.githubusercontent.com/dougmcneall/packages-git/master/emtools.R")
 source("https://raw.githubusercontent.com/dougmcneall/packages-git/master/imptools.R")
 source("https://raw.githubusercontent.com/dougmcneall/packages-git/master/vistools.R")
-
+library(fields)
+library(RColorBrewer)
 yg <- brewer.pal(9, "YlGn")
 
+# -------------------------------------------------------------------
+# 1. Emulate forest fraction in FAMOUS at the standard 
+# parameters
+# -------------------------------------------------------------------
 X = full_frac[,2:8]
 X.norm = normalize(X)
 X.stan.norm = normalize(matrix(X.standard, nrow = 1), wrt=X)
@@ -26,10 +31,10 @@ image.plot(longs, rev(lats),
            col=yg)
 map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
 
-# How many PCs minimises reconstruction error?
+# -------------------------------------------------------------------
+# 2. (slow) How many PCs minimises reconstruction error?
 # Test a direct prediction against the best PC prediction.
-# (figure out how to deal with the NAs)
-
+# -------------------------------------------------------------------
 # ptm <- proc.time()
 # n.pcs = 2:10
 # mae.recon = rep(NA, max(n.pcs))
@@ -56,8 +61,11 @@ map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
 # plot(mae.recon, type = 'b', xlab='Reconstruction PCs used', ylab='Mean absolute cv reconstruction error')
 # dev.off()
 
+# -------------------------------------------------------------------
+# 3. Cross validation reconstruction error with 6 Principal components
+# -------------------------------------------------------------------
 ptm <- proc.time()
-# Let's have a look at 6 PCs (takes about 4 minutes on desktop, 5.4 on the mac)
+# (takes about 4 minutes on desktop, 5.4 on the mac)
 bl.frac.ens.pc.cv = matrix(NA, nrow=nrow(bl.frac.ens), ncol = ncol(bl.frac.ens))
 for(i in 1:nrow(X)){
   X.trunc = X.norm[-i, ]
@@ -77,6 +85,7 @@ bl.frac.mmae.norm = bl.frac.mmae / bl.frac.sd
 # Bit of a tricky way to replace NaN and inf with NAs
 bl.frac.mmae.norm[is.finite(bl.frac.mmae.norm)==FALSE] <- NA
 
+# Map the mean absolute error of LOOCV reconstruction
 dev.new(width = 8, height =6)
 image.plot(longs, rev(lats),
            remap.famous(bl.frac.mmae,longs, lats),
@@ -86,6 +95,7 @@ map("world2", ylim=c(-90,90), xlim=c(0,360), add=TRUE)
 dev.new()
 hist(bl.frac.mmae)
 
+# Map the normalised mean absolute error of LOOCV reconstruction
 dev.new(width = 8, height =6)
 image.plot(longs, rev(lats),
            remap.famous(bl.frac.mmae.norm,longs, lats),
@@ -96,8 +106,10 @@ map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
 # works out at just under half of one standard deviation.
 mean(bl.frac.mmae.norm, na.rm = TRUE)
 
-# How would our emulator error compare if you were to just pick a random
-# ensemble member in place of the reconstruction?
+# -------------------------------------------------------------------
+# 4. How would emulator error compare if you were to just pick a random
+# ensemble member in place of the LOOCV emulator reconstruction?
+# -------------------------------------------------------------------
 
 bl.random.recon = bl.frac.ens[sample(1:nrow(bl.frac.ens), replace=FALSE), ]
 bl.random.recon.abserr = abs(bl.random.recon - bl.frac.ens)
