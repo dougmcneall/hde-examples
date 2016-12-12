@@ -23,6 +23,17 @@ X.norm = normalize(X)
 X.stan.norm = normalize(matrix(X.standard, nrow = 1), wrt=X)
 
 
+# # LOOCV reconstruct on a per-gridbox basis
+bl.frac.ens.direct.cv = matrix(NA, nrow=nrow(bl.frac.ens), ncol = ncol(bl.frac.ens))
+for(i in 1:nrow(X)){
+  X.trunc = X.norm[-i, ]
+  Y.trunc = bl.frac.ens[-i, ]
+  X.target = X.norm[i, ]
+  Y.target = bl.frac.ens[i, ]
+  Y.recon = direct.pred(Y=Y.trunc, X=X.trunc, newdata=X.target, num.pc=6)
+  bl.frac.ens.direct.cv[i, ] = Y.recon$mean
+}
+
 # LOOCV reconstruct using dimension reduction
 bl.frac.ens.pc.cv = matrix(NA, nrow=nrow(bl.frac.ens), ncol = ncol(bl.frac.ens))
 for(i in 1:nrow(X)){
@@ -34,77 +45,4 @@ for(i in 1:nrow(X)){
   bl.frac.ens.pc.cv[i, ] = Y.recon$tens
 }
 
-# # LOOCV reconstruct on a per-gridbox basis
-# # Helper functions that need to go into hde ...
-# km.wrap2 = function (form, em, ...){
-#   out = NA
-#   fit = try(DiceKriging::km(form, design = em$X, response = em$y, 
-#                             control = list(trace = FALSE), ...), silent = TRUE)
-#   out = fit
-#   out
-# }
-# 
-# km.pred.wrap = function(kmobj, Xnew, ...){
-#   
-#   pred = try(DiceKriging::predict.km(kmobj, newdata=Xnew, ...))
-#   pred
-#              
-# }
-# 
-# extract.predmean = function(predobj){
-#   if (class(predobj) == "try-error"){
-#     out=NA
-#   } 
-#   else {
-#     out = predobj$mean
-#   }
-#   out
-# }
-# 
-# extract.predsd = function(predobj){
-#   if (class(predobj) == "try-error"){
-#     out = NA
-#   } 
-#   else {
-#     out = predobj$sd
-#   }
-#   out
-# }
-# 
-# direct.pred2 = function (form, X, Y, Xnew, ...){
-#   ens.list = emlist(X = X, Y = Y)
-#   km.list = mclapply(ens.list, FUN = km.wrap2, form = form)
-#   
-#   pred.list = mclapply(km.list, FUN = km.pred.wrap, Xnew = as.matrix(Xnew, nrow = 1), type = "UK")
-#   
-#   out.mean = sapply(pred.list, FUN=extract.predmean)
-#   out.sd = sapply(pred.list, FUN=extract.predsd)
-#   return(list(mean = out.mean, sd = out.sd))
-# }
-
-# LOOCV reconstruction by direct emulation
-# Looking at a 24 hour compute time for direct prediction on the mac.
-# And looking more like 7.5 hours on the desktop, so roughly 3 times quicker with 4 x cores.
-ptm = proc.time()
-test = direct.pred(form = ~., X = X.norm, 
-                    Y = bl.frac.ens, Xnew=X.stan.norm)
-direct.time = proc.time() - ptm
-
-image.plot(longs, rev(lats),
-           remap.famous(test$mean,longs, lats),
-           col=yg)
-map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
-
-
-bl.standard = kmpar.pc(Y = bl.frac.ens, X = X.norm, newdata = X.stan.norm, num.pc = 3)
-image.plot(longs, rev(lats),
-           remap.famous(bl.standard$tens,longs, lats),
-           col=yg)
-map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
-
-bl.standard.diff = bl.standard$tens - test$mean
-
-image.plot(longs, rev(lats),
-           remap.famous(bl.standard.diff,longs, lats),
-           col=byr)
-map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
+save.image(file='hde-direct-vs-pc.Rdata')
