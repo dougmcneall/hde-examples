@@ -14,7 +14,9 @@ source("https://raw.githubusercontent.com/dougmcneall/packages-git/master/emtool
 source("https://raw.githubusercontent.com/dougmcneall/packages-git/master/imptools.R")
 source("https://raw.githubusercontent.com/dougmcneall/packages-git/master/vistools.R")
 
-yg <- brewer.pal(9, "YlGn")
+yg = brewer.pal(9, "YlGn")
+ryb = brewer.pal(9, "RdYlBu")
+byr = rev(ryb)
 
 X = full_frac[,2:8]
 X.norm = normalize(X)
@@ -82,7 +84,27 @@ for(i in 1:nrow(X)){
 
 # LOOCV reconstruction by direct emulation
 # Looking at a 24 hour compute time for direct prediction on the mac.
+# And looking more like 7.5 hours on the desktop, so roughly 3 times quicker with 4 x cores.
 ptm = proc.time()
 test = direct.pred(form = ~., X = X.norm, 
-                    Y = bl.frac.ens[ , 510:520], Xnew=X.stan.norm)
+                    Y = bl.frac.ens, Xnew=X.stan.norm)
 direct.time = proc.time() - ptm
+
+image.plot(longs, rev(lats),
+           remap.famous(test$mean,longs, lats),
+           col=yg)
+map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
+
+
+bl.standard = kmpar.pc(Y = bl.frac.ens, X = X.norm, newdata = X.stan.norm, num.pc = 3)
+image.plot(longs, rev(lats),
+           remap.famous(bl.standard$tens,longs, lats),
+           col=yg)
+map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
+
+bl.standard.diff = bl.standard$tens - test$mean
+
+image.plot(longs, rev(lats),
+           remap.famous(bl.standard.diff,longs, lats),
+           col=byr)
+map("world2", ylim=c(-90,90), xlim = c(0,360), add = TRUE)
